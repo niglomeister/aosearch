@@ -94,7 +94,7 @@ query GetImages($cursor: String) {
 }`;
 
 
-const filename = 'image_transactions.json'
+const filename = 'transactions.json'
 
 async function downloadTransactions() {
   const allTransactions = [];
