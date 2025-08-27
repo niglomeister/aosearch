@@ -6,15 +6,12 @@ AOSearch is a comprehensive search solution built for the AO ecosystem that enab
 
 ## Key Features
 
-- **Full-text search** across indexed transaction data with configurable field filtering
+- **Full-text search** across indexed transaction data with configurable field filtering and fuzzy finding
 - **Distributed architecture** with separate search and queue processes to handle high-volume indexing
-- **Random document discovery** using RandAO integration for serendipitous content exploration  
+- **Random document discovery** using RandAO integration for random document retrival (like "i'm feeling lucky" buttons)
 - **Bulk indexing support** with retry mechanisms and failure handling
 - **Authorization controls** for document indexing with configurable access permissions
-- **Real-time search** with up to 40 results per query and optional result filtering
-- **Queue management** with batch processing, status tracking, and automatic retries
 - **Developer utilities** for uploading and downloading transaction data sets
-- **Health monitoring** with ping endpoints and comprehensive status reporting
 
 ## Architecture Overview
 
@@ -123,61 +120,6 @@ After deployment, run the test suite to ensure everything is working correctly:
 npm test
 ```
 
-
-# Architecture
-
-## System Overview
-
-AOSearch implements a distributed architecture designed for scalability and reliability when handling large-scale document indexing and search operations on the AO blockchain.
-
-## Core Components
-
-### Search Process (`search_process.lua`)
-The main search engine that provides:
-- **Document Indexing**: Converts Arweave transactions into searchable documents
-- **Full-Text Search**: Performs queries across indexed content with filtering capabilities  
-- **Random Discovery**: Uses RandAO integration for random document retrieval ("im feeling lucky" style)
-- **Authorization**: Controls access to indexing operations
-
-### Queue Process (`queue_process.lua`)  
-A optional buffering layer for large volume indexing that provides:
-- **Bulk Processing**: Manages high-volume indexing without overwhelming the search process
-- **Retry Logic**: Automatic retry mechanisms for failed indexing operations
-- **Status Tracking**: Real-time monitoring of document processing states
-- **Batch Management**: Configurable batch sizes and processing intervals
-- **Error Handling**: Comprehensive failure management and reporting
-
-### Utility Scripts
-JavaScript tools for data management:
-- **Download Script**: Download transaction data using graphql, to upload to the search process. You can get rate limited easily on arweave gateways so better download first and upload to the separately to not be subject to gateway errors during the upload
-- **Upload Script**: Bulk uploads transaction data to the index from JSON file downloaded using the download script
-
-## Data Flow
-
-```
-Transaction Data → Queue Process → Search Process → Indexed Documents
-                      ↓              ↓
-                 Status Tracking   Search Queries → Results
-```
-
-## Process Communication
-
-The system uses AO's message-passing architecture:
-
-- **External → Search**: Indexing, direct search queries and document retrieval requests
-- **External → Queue**: Bulk indexing requests for large amounts of documents, as to not slow down the search process for users
-- **Queue → Search**: `Index_document` messages with retry tracking via `Response-To` tags
-
-## Scalability Design
-
-- **Separation of Concerns**: Search and indexing operations are isolated to prevent performance interference
-- **Batch Processing**: Queue process handles multiple documents efficiently
-- **Configurable Limits**: Adjustable batch sizes, retry counts, and processing intervals
-
-
-This architecture ensures AOSearch can handle both individual search queries with low latency and bulk indexing operations without compromising system performance or reliability.
-
-
 # Core Processes
 
 ## 5.1 Search Process
@@ -186,7 +128,7 @@ The search process (`search_process.lua`) is the heart of AOSearch, providing do
 
 ### Purpose and Functionality
 
-The search process maintains a searchable index of Arweave transactions and provides fast query capabilities. It converts transaction data into searchable documents, performs full-text searches with filtering, and integrates with RandAO for random document discovery.
+The search process maintains a searchable index of Arweave transactions and provides query capabilities. It converts transaction data into searchable documents, performs full-text searches with filtering, and integrates with RandAO for random document discovery.
 
 ### Configuration Options
 
