@@ -2,7 +2,7 @@ import fs from 'fs';
 import { createDataItemSigner, message, result } from '@permaweb/aoconnect';
 
 // Configuration
-const SEARCH_PROCESS_ID = '-O7VLCjzqvyqrmhWlIfwqp_DY2v8FmBVlBpOaDv8qlQ'; // Your search process ID
+const SEARCH_PROCESS_ID = 'Jzu1uOdKJ00V-61pTlIFy7sNRA3vwqWBgHUgmA5i7h4'; // Your search process ID
 const QUEUE_PROCESS_ID = 'your-queue-process-id-here'; // Your queue process ID
 const WALLET_PATH = './wallet.json'; // Path to your Arweave wallet JSON file
 const TRANSACTIONS_FILE = './transactions.json';
