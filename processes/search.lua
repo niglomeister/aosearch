@@ -242,7 +242,7 @@ end
 function DocumentSearch:get_random_documents(seed, n)
     local results = {}
     local value = seed + 1
-    for i = 1, n, 1 do
+    for i = 1, math.min(n, #self.documents), 1 do
         value = (value * 9301 + 49297) % 233280
         local idx = (value % #self.documents) + 1
 

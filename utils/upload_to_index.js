@@ -2,14 +2,16 @@ import fs from 'fs';
 import { createDataItemSigner, message, result } from '@permaweb/aoconnect';
 
 // Configuration
-const SEARCH_PROCESS_ID = 'Jzu1uOdKJ00V-61pTlIFy7sNRA3vwqWBgHUgmA5i7h4'; // Your search process ID
-const QUEUE_PROCESS_ID = 'your-queue-process-id-here'; // Your queue process ID
-const WALLET_PATH = './wallet.json'; // Path to your Arweave wallet JSON file
-const TRANSACTIONS_FILE = './transactions.json';
+const SEARCH_PROCESS_ID = 'mI_boPd9ysI1IUQkmj93u2LohrSScBQoOsyp-bZlyfQ'; // Your search process ID
 
-// Configuration options
-const USE_QUEUE = false; // Set to true to upload through the queue and to false to upload directly to search process
+const QUEUE_PROCESS_ID = null // Your queue process ID if using one
+const USE_QUEUE = QUEUE_PROCESS_ID !== null;
+
+
+const WALLET_PATH = './wallet.json'; // Path to your Arweave wallet JSON file
+const TRANSACTIONS_FILE = './libgen_transactions.json';
 const BATCH_DELAY = 1000; // Delay between uploads in milliseconds
+
 
 async function loadTransactions() {
   try {

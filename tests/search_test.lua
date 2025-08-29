@@ -125,7 +125,17 @@ local function example_usage()
                 Pages = "450",
                 Description = "Introduction to machine learning algorithms and techniques"
             }
-        }
+        },
+          {
+            id = 'test-tx-1',
+            metadata = {
+             Title ='Introduction to Blockchain Technology' ,
+             Author = 'Alice Johnson' ,
+              Category = 'Technology' ,
+             Year = '2024' ,
+             Language =  'English' 
+            }
+        },
     }
 
     -- Add documents to search index
@@ -168,13 +178,15 @@ local function example_usage()
     print("Query: 'algorithms' (Computer Science only)")
     filters = { Category = "computer science" }
     results = search:search("algorithms", 3, filters)
+    print(dump_table(results))
 
     local ids = search:get_indexed_txs()
     print(table.concat(ids, ', '))
 
     math.randomseed(os.time())
     local random_results = search:get_random_documents(math.random(1,1000), 2)
-    print(dump_table(random_results))
+
+    print(dump_table(search:search('Blckchain Technology')))
 end
 
 -- Run the example

@@ -2,27 +2,16 @@
 
 **A distributed search engine for the AO blockchain**
 
-AOSearch is a comprehensive search solution built for the AO ecosystem that enables indexing and searching of Arweave transactions. The system consists of a main search process for handling queries and document indexing, a queue process for managing bulk indexing operations, and utility scripts for data management.
+AOSearch is a search engine built for the AO ecosystem that enables indexing and searching of Arweave transactions. The system consists of a main search process for handling queries and document indexing, a queue process for managing bulk indexing operations, and utility scripts for data management.
 
 ## Key Features
 
 - **Full-text search** across indexed transaction data with configurable field filtering and fuzzy finding
 - **Distributed architecture** with separate search and queue processes to handle high-volume indexing
-- **Random document discovery** using RandAO integration for random document retrival (like "i'm feeling lucky" buttons)
+- **Random document discovery** using RandAO integration for random document retrival (think "i'm feeling lucky" buttons)
 - **Bulk indexing support** with retry mechanisms and failure handling
 - **Authorization controls** for document indexing with configurable access permissions
 - **Developer utilities** for uploading and downloading transaction data sets
-
-## Architecture Overview
-
-AOSearch uses a multi-process architecture designed for scalability and reliability:
-
-- **Search Process**: Core search engine that maintains the document index and handles search queries
-- **Queue Process**: Manages bulk document indexing to prevent overwhelming the search process
-- **Utility Scripts**: JavaScript tools for data import/export and process management
-- **RandAO Integration**: Provides cryptographically secure randomness for document discovery
-
-The processes communicate via AO's message-passing system, with the queue process acting as a buffer between bulk indexing operations and the search engine to ensure optimal performance.
 
 ---
 
@@ -31,16 +20,14 @@ The processes communicate via AO's message-passing system, with the queue proces
 1. [Project Header & Overview](#aosearch)
 2. [Table of Contents](#table-of-contents)
 3. [Getting Started](#getting-started)
-4. [Architecture](#architecture)
-5. [Core Processes](#core-processes)
-   - 5.1 [Search Process](#search-process)
-   - 5.2 [Queue Process](#queue-process)
-6. [Utilities](#utilities)
-   - 6.1 [Upload Script](#upload-script)
-   - 6.2 [Download Script](#download-script)
-7. [Examples & Use Cases](#examples--use-cases)
-8. [Testing](#testing)
-9. [License & Credits](#license--credits)
+4. [Core Processes](#core-processes)
+   - 4.1 [Search Process](#search-process)
+   - 4.2 [Queue Process](#queue-process)
+5. [Utilities](#utilities)
+   - 5.1 [Download Script](#download-script)
+   - 5.2 [Upload Script](#upload-script)
+6. [Examples & Use Cases](#examples--use-cases)
+7. [License & Credits](#license--credits)
 
 # Getting Started
 
@@ -71,7 +58,7 @@ aos search-process
 
 ### 2. Deploy the Queue Process (Optional)
 
-If you plan to do bulk indexing operations, deploy the queue process, if you are just looking to test or not looking to index large number of documents you can skip this step:
+If you plan to do bulk indexing operations, deploy the queue process, if you are just looking to test or not looking to index very large number of documents you can skip this step:
 
 ```bash
 # Create another AO process  
@@ -82,17 +69,13 @@ aos queue-process
 .load queue_process.lua
 ```
 
-### 3. Setup Utility Scripts
+### 3. Install javascript dependencies
 
 For the JavaScript utilities:
 
 ```bash
 # Install dependencies
 npm install
-
-# Configure process IDs in the scripts
-# Edit upload_to_index.js and set process_id to your search process ID
-# Edit download_transactions.cjs and set process_id accordingly
 ```
 
 ## Quick Start
@@ -108,7 +91,7 @@ npm install
 
 **Utility Scripts Configuration:**
 - Set the `process_id` variable in both JavaScript files to your search process ID
-- Ensure your `wallet.json` file is in the correct location for the upload script
+- Ensure your `wallet.json` file is in the utils directory
 - There are example transaction list files included already, edit the file path in upload_to_index.js if you want to use them
 
 ### 2. Verify Installation
@@ -117,12 +100,30 @@ After deployment, run the test suite to ensure everything is working correctly:
 
 ```bash
 # Run tests to verify your setup
-npm test
+# set the process id variables inside the script to that of your search process and of your queue process if you are using one
+
+node full_test.js
+```
+
+### 3. Index transactions and search
+
+Once everything works you can configure and use the utility scripts described in section 5 to download and index transactions
+
+Set the graphql query inside the script and download new transactions corresponding to your usecase, or just use the default
+```bash
+# Run tests to verify your setup
+node download_transactions.cjs
+```
+
+Set the TRANSACTION_FILE variable to your JSON transations file path and the process ids to the ids of your corresponding processes, then run
+```bash
+# Run tests to verify your setup
+node upload_to_index.js
 ```
 
 # Core Processes
 
-## 5.1 Search Process
+## 4.1 Search Process
 
 The search process (`search_process.lua`) is the heart of AOSearch, providing document indexing, full-text search capabilities, and random document discovery.
 
@@ -205,7 +206,7 @@ Retrieves random documents using RandAO entropy.
 
 ---
 
-## 5.2 Queue Process
+## 4.2 Queue Process
 
 The queue process (`queue_process.lua`) manages bulk document indexing operations, preventing the search process from being overwhelmed during high-volume uploads.
 
@@ -341,7 +342,76 @@ Retrieve paginated list of queue items with optional filtering.
 
 # Utilities
 
-## 6.1 Upload Script
+## 5.1 Download Script
+
+The download script (`download_transactions.cjs`) queries Arweave's GraphQL endpoint to fetch transaction data and save it locally for processing.
+
+### Purpose and Usage
+
+Fetches transaction data from Arweave based on configurable GraphQL queries and saves the results to a JSON file. Includes example queries for different use cases and supports pagination for large datasets.
+
+### Configuration
+
+```javascript
+const filename = 'transactions.json';  // Output filename
+const maxTransactions = 200;           // Maximum transactions to fetch
+```
+
+### Query Examples
+
+The script includes pre-configured queries for example use cases:
+
+**Libgen Books:**
+```javascript
+const query = `
+  query GetLibgenTransactions($after: String) {
+    transactions(
+      tags: [{ name: "App-Name", values: ["Libgen"] }]
+      first: 100
+      after: $after
+    ) {
+      pageInfo { hasNextPage }
+      edges {
+        cursor
+        node {
+          id
+          tags { name value }
+          block { timestamp height }
+        }
+      }
+    }
+  }
+`;
+```
+
+
+### Command Line Usage
+
+```bash
+# Edit the query variable to match your needs
+# Modify filename and maxTransactions as desired
+
+# Run the download
+node download_transactions.js
+```
+
+### Output Format
+
+Creates a JSON file with an array of transaction objects:
+
+```json
+[
+  {
+    "id": "transaction-id",
+    "owner": {"address": "owner-address"},
+    "tags": [{"name": "tag-name", "value": "tag-value"}],
+    "block": {"timestamp": 1234567890, "height": 12345}
+  }
+]
+```
+
+
+## 5.2 Upload Script
 
 The upload script (`upload_to_index.js`) enables bulk uploading of transaction data to AOSearch, with support for both direct indexing and queue-based processing.
 
@@ -397,8 +467,8 @@ The script expects a JSON file containing an array of Arweave transaction object
 npm install
 
 # Configure the script by editing the constants
-# Set SEARCH_PROCESS_ID and QUEUE_PROCESS_ID
-# Set USE_QUEUE = true for bulk operations
+# Set SEARCH_PROCESS_ID 
+# Set QUEUE_PROCESS_ID if using one for bulk operations for bulk operations
 
 # Run the upload
 node upload_to_index.js
@@ -419,112 +489,13 @@ node upload_to_index.js
 ### Error Handling
 
 - Automatic retry logic (configurable delay)
-- Detailed error logging with transaction IDs
 - Graceful handling of network issues
 - Rate limiting protection with configurable delays
 
 ---
 
-## 6.2 Download Script
 
-The download script (`download_transactions.cjs`) queries Arweave's GraphQL endpoint to fetch transaction data and save it locally for processing.
-
-### Purpose and Usage
-
-Fetches transaction data from Arweave based on configurable GraphQL queries and saves the results to a JSON file. Includes example queries for different use cases and supports pagination for large datasets.
-
-### Configuration
-
-```javascript
-const filename = 'transactions.json';  // Output filename
-const maxTransactions = 200;           // Maximum transactions to fetch
-```
-
-### Query Examples
-
-The script includes pre-configured queries for example use cases:
-
-**Libgen Books:**
-```javascript
-const query = `
-  query GetLibgenTransactions($after: String) {
-    transactions(
-      tags: [{ name: "App-Name", values: ["Libgen"] }]
-      first: 100
-      after: $after
-    ) {
-      pageInfo { hasNextPage }
-      edges {
-        cursor
-        node {
-          id
-          tags { name value }
-          block { timestamp height }
-        }
-      }
-    }
-  }
-`;
-```
-
-**ArkiveNow Images:**
-```javascript
-const query = `
-  query GetImages($cursor: String) {
-    transactions(
-      tags: [
-        { name: "Content-Type", values: ["image/jpeg", "image/png", "image/gif", "image/webp"] }
-        { name: "App-Name", values: "ArkiveNow" }
-      ]
-      first: 100
-      after: $cursor
-      sort: HEIGHT_DESC
-    ) {
-      // ... query structure
-    }
-  }
-`;
-```
-
-### Command Line Usage
-
-```bash
-# Edit the query variable to match your needs
-# Modify filename and maxTransactions as desired
-
-# Run the download
-node download_transactions.js
-```
-
-### Output Format
-
-Creates a JSON file with an array of transaction objects:
-
-```json
-[
-  {
-    "id": "transaction-id",
-    "owner": {"address": "owner-address"},
-    "tags": [{"name": "tag-name", "value": "tag-value"}],
-    "block": {"timestamp": 1234567890, "height": 12345}
-  }
-]
-```
-
-### Customization
-
-To fetch different types of transactions, modify the `query` variable:
-
-1. Change tag filters to match your target transactions
-2. Adjust sorting and pagination parameters
-3. Modify the selected fields in the GraphQL query
-4. Update `maxTransactions` and `filename` as needed
-
-The downloaded data can then be used with the upload script to populate your AOSearch index.
-
-# Examples & Use Cases
-
-## Common Search Patterns
+# Example usecases
 
 ### Basic Text Search
 ```javascript
@@ -565,7 +536,7 @@ ao.send({
 });
 ```
 
-## Bulk Indexing Workflows
+## Indexing Workflows
 
 ### Small Dataset (Direct Upload)
 For datasets under 100 documents, upload directly to the search process:
@@ -619,88 +590,6 @@ ao.send({
   Action: "Retry_failed"
 });
 ```
-
-## Integration Examples
-
-### Academic Paper Repository
-```javascript
-// Index academic papers with rich metadata
-const paperTransaction = {
-  id: "paper-tx-id",
-  tags: [
-    {name: "Title", value: "Deep Learning Applications in Healthcare"},
-    {name: "Author", value: "Dr. Jane Smith"},
-    {name: "Category", value: "Computer Science"},
-    {name: "Topic", value: "Machine Learning"},
-    {name: "Year", value: "2024"},
-    {name: "Publisher", value: "Academic Press"},
-    {name: "Language", value: "English"}
-  ]
-};
-
-// Search by research area
-ao.send({
-  Target: "search-process-id",
-  Action: "Search_document",
-  Data: JSON.stringify({
-    query: "healthcare AI",
-    filters: {"Category": "Computer Science", "Year": "2024"}
-  })
-});
-```
-
-### Digital Library System
-```javascript
-// Index books with library metadata
-const bookTransaction = {
-  id: "book-tx-id", 
-  tags: [
-    {name: "Title", value: "The Blockchain Revolution"},
-    {name: "Author", value: "Alex Tapscott"},
-    {name: "Category", value: "Technology"},
-    {name: "Publisher", value: "Portfolio"},
-    {name: "Year", value: "2016"},
-    {name: "Extension", value: "pdf"},
-    {name: "Language", value: "English"},
-    {name: "Filesize", value: "2.5MB"}
-  ]
-};
-
-// Search library catalog
-ao.send({
-  Target: "search-process-id",
-  Action: "Search_document", 
-  Data: JSON.stringify({
-    query: "blockchain cryptocurrency",
-    filters: {"Extension": "pdf", "Language": "English"}
-  })
-});
-```
-
-### Media Archive
-```javascript
-// Index multimedia content
-const mediaTransaction = {
-  id: "media-tx-id",
-  tags: [
-    {name: "Title", value: "Sunset Over Mountains"},
-    {name: "Content-Type", value: "image/jpeg"},
-    {name: "Author", value: "PhotoArtist"},
-    {name: "Category", value: "Photography"},
-    {name: "Topic", value: "Nature"},
-    {name: "Year", value: "2024"},
-    {name: "Filesize", value: "4.2MB"}
-  ]
-};
-
-// Discover random media
-ao.send({
-  Target: "search-process-id",
-  Action: "Get_random_documents",
-  Data: JSON.stringify({n: 5})
-});
-```
-
 
 ---
 

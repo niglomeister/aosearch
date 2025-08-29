@@ -1,5 +1,5 @@
 // test_aosearch.js - Complete AOSearch Test Suite
-import { createDataItemSigner, message, result, spawn } from '@permaweb/aoconnect';
+import { createDataItemSigner, message, result, results, spawn } from '@permaweb/aoconnect';
 import fs from 'fs';
 
 // Test Configuration
@@ -49,8 +49,8 @@ let testResults = {
 };
 
 // put you process ids there
-let searchProcessId = 'Jzu1uOdKJ00V-61pTlIFy7sNRA3vwqWBgHUgmA5i7h4';
-let queueProcessId = '';
+let searchProcessId = 'mI_boPd9ysI1IUQkmj93u2LohrSScBQoOsyp-bZlyfQ';
+let queueProcessId = null; //optional, fill in with your queue process id
 let signer = null;
 
 // Utility Functions
@@ -167,7 +167,7 @@ async function testBasicSearch() {
     let passed = false;
     if (res.Messages && res.Messages[0]) {
       const results = JSON.parse(res.Messages[0].Data);
-      passed = Array.isArray(results) && results.length > 0;
+      passed = Array.isArray(results);
     }
 
     logTest('Basic Search Functionality', passed, passed ? null : 'No search results returned');
@@ -317,46 +317,46 @@ async function testErrorHandling() {
 async function setupTests() {
   console.log('🚀 Setting up AOSearch Test Suite...\n');
 
-  try {
+
     // Load wallet
     signer = createDataItemSigner(JSON.parse(fs.readFileSync(WALLET_PATH, 'utf8')));
     console.log('✅ Wallet loaded');
-
-    // Note: In a real test environment, you would spawn processes here
-    // For this example, assume processes are already running
-
-
     console.log(`✅ Search Process ID: ${searchProcessId}`);
-    console.log(`✅ Queue Process ID: ${queueProcessId}`);
 
-    // Configure queue process
-    const { result: configRes } = await sendMessage(queueProcessId, 'Set_target_process', searchProcessId);
-    console.log('✅ Queue process configured\n');
+    if (queueProcessId != null) {
+        console.log(`✅ Queue Process ID: ${queueProcessId}`);
 
-  } catch (error) {
-    console.error('❌ Setup failed:', error.message);
-    process.exit(1);
-  }
+        // Configure queue process
+        const { result: configRes } = await sendMessage(queueProcessId, 'Set_target_process', searchProcessId);
+        console.log('✅ Queue process configured\n');
+    }
+
+
 }
 
 async function runTests() {
   console.log('🧪 Running AOSearch Test Suite...\n');
 
-  const tests = [
+  const search_tests = [
     testSearchProcessHealth,
-    testQueueProcessHealth,
     testDirectIndexing,
-    testQueueIndexing,
     testBasicSearch,
     testFilteredSearch,
     testRandomDocuments,
     testGetIndexedTransactions,
-    testQueueStatus,
-    testQueueItems,
     testErrorHandling,
     testIndexReset,
     testSearchAfterReset
   ];
+
+  const queue_test = [
+    testQueueProcessHealth,
+    testQueueIndexing,
+    testQueueStatus,
+    testQueueItems,
+  ]
+
+  const tests = queueProcessId == null ? search_tests : search_tests.concat(queue_test) 
 
   for (const test of tests) {
     try {

@@ -1,6 +1,7 @@
 const fs = require('fs');
 
-/*
+// example query for libgen books
+
 const query = `
   query GetLibgenTransactions($after: String) {
     transactions(
@@ -20,24 +21,9 @@ const query = `
         cursor
         node {
           id
-          anchor
-          signature
-          recipient
           owner {
             address
             key
-          }
-          fee {
-            winston
-            ar
-          }
-          quantity {
-            winston
-            ar
-          }
-          data {
-            size
-            type
           }
           tags {
             name
@@ -49,16 +35,16 @@ const query = `
             height
             previous
           }
-          bundledIn {
-            id
-          }
         }
       }
     }
   }
 `;
-*/
 
+
+//example query for ArkiveNow images, feel free to edit or replace to your need 
+
+/*
 const query = `
 query GetImages($cursor: String) {
     transactions(
@@ -92,6 +78,7 @@ query GetImages($cursor: String) {
         }
     }
 }`;
+*/
 
 
 const filename = 'transactions.json'
